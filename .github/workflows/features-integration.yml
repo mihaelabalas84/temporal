@@ -69,7 +69,7 @@ jobs:
       - feature-tests-python
       - feature-tests-java
       - feature-tests-dotnet
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: always()
     env:
       RESULTS: ${{ toJSON(needs.*.result) }}
