@@ -5,7 +5,7 @@ permissions:
   contents: read
 jobs:
   lint-actions:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,7 +24,7 @@ jobs:
         shell: bash
 
   lint-protos:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,7 +42,7 @@ jobs:
           make lint-protos
 
   lint-api:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
         with:
@@ -65,7 +65,7 @@ jobs:
       - lint-api
       - lint-protos
       - lint-actions
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: always()
     env:
       RESULTS: ${{ toJSON(needs.*.result) }}

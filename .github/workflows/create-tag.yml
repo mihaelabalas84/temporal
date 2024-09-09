@@ -24,7 +24,7 @@ on:
 jobs:
   create-tag:
     name: "Create a tag"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     defaults:
       run:
