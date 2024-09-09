@@ -48,6 +48,7 @@ import (
 
 	"go.temporal.io/server/common/authorization"
 	"go.temporal.io/server/common/config"
+	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/temporal"
 	"go.temporal.io/server/temporaltest"
 )
@@ -217,13 +218,14 @@ func (denyAllClaimMapper) GetClaims(*authorization.AuthInfo) (*authorization.Cla
 func TestBaseServerOptions(t *testing.T) {
 	// This test verifies that we can set custom claim mappers and authorizers
 	// with BaseServerOptions.
+	logger := log.NewTestLogger()
 	ts := temporaltest.NewServer(
 		temporaltest.WithT(t),
 		temporaltest.WithBaseServerOptions(
 			temporal.WithClaimMapper(func(cfg *config.Config) authorization.ClaimMapper {
 				return denyAllClaimMapper{}
 			}),
-			temporal.WithAuthorizer(authorization.NewDefaultAuthorizer()),
+			temporal.WithAuthorizer(authorization.NewDefaultAuthorizer(logger)),
 		),
 	)
 
