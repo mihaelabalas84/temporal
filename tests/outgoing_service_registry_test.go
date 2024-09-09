@@ -108,7 +108,7 @@ func (s *FunctionalSuite) TestOutgoingServiceRegistry() {
 				Namespace: ns,
 				Name:      serviceName,
 				Spec: &nexus.OutgoingServiceSpec{
-					Url: testURL,
+					Url:               testURL,
 					PublicCallbackUrl: testCallbackURL,
 				},
 			})
@@ -125,7 +125,7 @@ func (s *FunctionalSuite) TestOutgoingServiceRegistry() {
 				Namespace: ns,
 				Name:      serviceName,
 				Spec: &nexus.OutgoingServiceSpec{
-					Url: testURL,
+					Url:               testURL,
 					PublicCallbackUrl: testCallbackURL,
 				},
 			})
@@ -138,7 +138,7 @@ func (s *FunctionalSuite) TestOutgoingServiceRegistry() {
 				Namespace: ns,
 				Name:      serviceName,
 				Spec: &nexus.OutgoingServiceSpec{
-					Url: testURL,
+					Url:               testURL,
 					PublicCallbackUrl: testCallbackURL,
 				},
 			})
@@ -156,7 +156,7 @@ func (s *FunctionalSuite) TestOutgoingServiceRegistry() {
 				Namespace: ns,
 				Name:      serviceName,
 				Spec: &nexus.OutgoingServiceSpec{
-					Url: testURL,
+					Url:               testURL,
 					PublicCallbackUrl: testCallbackURL,
 				},
 			})
@@ -170,7 +170,7 @@ func (s *FunctionalSuite) TestOutgoingServiceRegistry() {
 				Namespace: ns,
 				Name:      serviceName,
 				Spec: &nexus.OutgoingServiceSpec{
-					Url: testURL + "x",
+					Url:               testURL + "x",
 					PublicCallbackUrl: testCallbackURL,
 				},
 			})
@@ -196,7 +196,7 @@ func (s *FunctionalSuite) TestOutgoingServiceRegistry() {
 				Namespace: ns,
 				Name:      serviceName,
 				Spec: &nexus.OutgoingServiceSpec{
-					Url: testURL,
+					Url:               testURL,
 					PublicCallbackUrl: testCallbackURL,
 				},
 			})
@@ -231,7 +231,7 @@ func (s *FunctionalSuite) TestOutgoingServiceRegistry() {
 				Namespace: ns,
 				Name:      getServiceName(baseServiceName, i),
 				Spec: &nexus.OutgoingServiceSpec{
-					Url: testURL,
+					Url:               testURL,
 					PublicCallbackUrl: testCallbackURL,
 				},
 			})
