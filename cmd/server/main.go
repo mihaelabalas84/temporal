@@ -170,7 +170,7 @@ func buildCLI() *cli.App {
 
 				authorizer, err := authorization.GetAuthorizerFromConfig(
 					&cfg.Global.Authorization,
-          logger
+					logger,
 				)
 				if err != nil {
 					return cli.Exit(fmt.Sprintf("Unable to instantiate authorizer. Error: %v", err), 1)
