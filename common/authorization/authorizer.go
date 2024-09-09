@@ -28,6 +28,7 @@ package authorization
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -78,10 +79,14 @@ type hasNamespace interface {
 	GetNamespace() string
 }
 
-func GetAuthorizerFromConfig(config *config.Authorization, logger log.Logger) (Authorizer, error) {
-	logger.Debug("Getting authorizer from config", tag.NewAnyTag("config", config))
+var (
+	ErrUnknownAuthorizer = errors.New("unknown authorizer")
+)
 
-	switch strings.ToLower(config.Authorizer) {
+func GetAuthorizerFromConfig(authConfig *config.Authorization, logger log.Logger) (Authorizer, error) {
+	logger.Debug("Getting authorizer from config", tag.NewAnyTag("config", authConfig))
+
+	switch strings.ToLower(authConfig.Authorizer) {
 	case "":
 		logger.Debug("No authorizer specified, using NoopAuthorizer")
 		return NewNoopAuthorizer(), nil
@@ -89,7 +94,7 @@ func GetAuthorizerFromConfig(config *config.Authorization, logger log.Logger) (A
 		logger.Debug("Default authorizer specified, using DefaultAuthorizer")
 		return NewDefaultAuthorizer(logger), nil
 	}
-	err := fmt.Errorf("unknown authorizer: %s", config.Authorizer)
+	err := fmt.Errorf("%w: %s", ErrUnknownAuthorizer, authConfig.Authorizer)
 	logger.Error("Unknown authorizer", tag.Error(err))
 	return nil, err
 }

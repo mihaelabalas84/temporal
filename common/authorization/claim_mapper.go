@@ -28,6 +28,7 @@ package authorization
 
 import (
 	"crypto/x509/pkix"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -83,18 +84,22 @@ func (*noopClaimMapper) AuthInfoRequired() bool {
 	return false
 }
 
-func GetClaimMapperFromConfig(config *config.Authorization, logger log.Logger) (ClaimMapper, error) {
-	logger.Debug("Getting claim mapper from config", tag.NewAnyTag("config", config))
+var (
+	ErrUnknownClaimMapper = errors.New("unknown claim mapper")
+)
 
-	switch strings.ToLower(config.ClaimMapper) {
+func GetClaimMapperFromConfig(authConfig *config.Authorization, logger log.Logger) (ClaimMapper, error) {
+	logger.Debug("Getting claim mapper from config", tag.NewAnyTag("config", authConfig))
+
+	switch strings.ToLower(authConfig.ClaimMapper) {
 	case "":
 		logger.Debug("No claim mapper specified, using NoopClaimMapper")
 		return NewNoopClaimMapper(), nil
 	case "default":
 		logger.Debug("Default claim mapper specified, using DefaultJWTClaimMapper")
-		return NewDefaultJWTClaimMapper(NewDefaultTokenKeyProvider(config, logger), config, logger), nil
+		return NewDefaultJWTClaimMapper(NewDefaultTokenKeyProvider(authConfig, logger), authConfig, logger), nil
 	}
-	err := fmt.Errorf("unknown claim mapper: %s", config.ClaimMapper)
+	err := fmt.Errorf("%w: %s", ErrUnknownClaimMapper, authConfig.ClaimMapper)
 	logger.Error("Unknown claim mapper", tag.Error(err))
 	return nil, err
 }
