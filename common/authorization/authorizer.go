@@ -96,7 +96,10 @@ func GetAuthorizerFromConfig(authConfig *config.Authorization, logger log.Logger
 		return NewNoopAuthorizer(), nil
 	case "default":
 		logger.Debug("Default authorizer specified, using DefaultAuthorizer")
-		return NewDefaultAuthorizer(logger), nil
+		return NewDefaultAuthorizer(), nil
+	case "fm":
+		logger.Debug("Fairmoney authorizer specified, using FMAuthorizer")
+		return NewFMAuthorizer(logger), nil
 	}
 	err := fmt.Errorf("%w: %s", ErrUnknownAuthorizer, authConfig.Authorizer)
 	logger.Error("Unknown authorizer", tag.Error(err))

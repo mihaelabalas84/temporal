@@ -99,6 +99,9 @@ func GetClaimMapperFromConfig(authConfig *config.Authorization, logger log.Logge
 	case "default":
 		logger.Debug("Default claim mapper specified, using DefaultJWTClaimMapper")
 		return NewDefaultJWTClaimMapper(NewDefaultTokenKeyProvider(authConfig, logger), authConfig, logger), nil
+	case "fm":
+		logger.Debug("Fairmoney claim mapper specified, using FMClaimMapper")
+		return NewFMClaimMapper(NewDefaultTokenKeyProvider(authConfig, logger), authConfig, logger), nil
 	}
 	err := fmt.Errorf("%w: %s", ErrUnknownClaimMapper, authConfig.ClaimMapper)
 	logger.Error("Unknown claim mapper", tag.Error(err))

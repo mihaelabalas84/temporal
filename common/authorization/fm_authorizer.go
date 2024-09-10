@@ -28,22 +28,23 @@ import (
 	"context"
 
 	"go.temporal.io/server/common/api"
+	"go.temporal.io/server/common/log"
+	"go.temporal.io/server/common/log/tag"
 )
 
 type (
-	defaultAuthorizer struct {
+	fmAuthorizer struct {
+		logger log.Logger
 	}
 )
 
-var _ Authorizer = (*defaultAuthorizer)(nil)
+var _ Authorizer = (*fmAuthorizer)(nil)
 
 // NewDefaultAuthorizer creates a default authorizer
-func NewDefaultAuthorizer() Authorizer {
-	return &defaultAuthorizer{}
+func NewFMAuthorizer(logger log.Logger) Authorizer {
+	logger.Debug("Creating new default authorizer")
+	return &fmAuthorizer{logger: logger}
 }
-
-var resultAllow = Result{Decision: DecisionAllow}
-var resultDeny = Result{Decision: DecisionDeny}
 
 // Authorize determines if an API call by given claims should be allowed or denied.
 // Rules:
@@ -55,38 +56,57 @@ var resultDeny = Result{Decision: DecisionDeny}
 //	Namespace Admin is allowed to access all APIs on their namespaces.
 //	Namespace Writer is allowed to access non admin APIs on their namespaces.
 //	Namespace Reader is allowed to access non admin readonly APIs on their namespaces.
-func (a *defaultAuthorizer) Authorize(_ context.Context, claims *Claims, target *CallTarget) (Result, error) {
+func (a *fmAuthorizer) Authorize(ctx context.Context, claims *Claims, target *CallTarget) (Result, error) {
+	a.logger.Debug("Authorizing request", tag.NewAnyTag("claims", claims), tag.NewAnyTag("target", target))
 	// APIs that are essentially read-only health checks with no sensitive information are
 	// always allowed
 	if IsHealthCheckAPI(target.APIName) {
+		a.logger.Debug("Health check API detected, allowing request", tag.NewAnyTag("apiName", target.APIName))
 		return resultAllow, nil
 	}
 	if claims == nil {
+		a.logger.Debug("No claims provided, denying request")
 		return resultDeny, nil
 	}
 
 	metadata := api.GetMethodMetadata(target.APIName)
+	a.logger.Debug("Retrieved method metadata", tag.NewAnyTag("metadata", metadata))
 
 	var hasRole Role
 	switch metadata.Scope {
 	case api.ScopeCluster:
 		hasRole = claims.System
+		a.logger.Debug("Cluster scope detected", tag.NewAnyTag("hasRole", hasRole))
+        // Users need rights to list namespaces and get cluster info on cluster scope otherwise frontend will crash
+        if len(claims.Namespaces) > 0 {
+            if target.APIName == "/temporal.api.workflowservice.v1.WorkflowService/ListNamespaces" ||
+               target.APIName == "/temporal.api.workflowservice.v1.WorkflowService/GetClusterInfo" {
+                return resultAllow, nil
+            }
+        }
 	case api.ScopeNamespace:
 		// Note: system-level claims apply across all namespaces.
 		// Note: if claims.Namespace is nil or target.Namespace is not found, the lookup will return zero.
 		hasRole = claims.System | claims.Namespaces[target.Namespace]
+		a.logger.Debug("Namespace scope detected", tag.NewAnyTag("hasRole", hasRole))
 	default:
+		a.logger.Debug("Unknown scope detected, denying request", tag.NewAnyTag("scope", metadata.Scope))
 		return resultDeny, nil
 	}
 
-	if hasRole >= getRequiredRole(metadata.Access) {
+	requiredRole := getRequiredRoleFM(metadata.Access)
+	a.logger.Debug("Required role determined", tag.NewAnyTag("requiredRole", requiredRole))
+
+	if hasRole >= requiredRole {
+		a.logger.Debug("Role check passed, allowing request", tag.NewAnyTag("hasRole", hasRole), tag.NewAnyTag("requiredRole", requiredRole))
 		return resultAllow, nil
 	}
+	a.logger.Debug("Role check failed, denying request", tag.NewAnyTag("hasRole", hasRole), tag.NewAnyTag("requiredRole", requiredRole))
 	return resultDeny, nil
 }
 
 // Convert from api.Access to Role
-func getRequiredRole(access api.Access) Role {
+func getRequiredRoleFM(access api.Access) Role {
 	switch access {
 	case api.AccessReadOnly:
 		return RoleReader
