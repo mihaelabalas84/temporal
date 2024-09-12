@@ -142,9 +142,9 @@ func (a *Interceptor) Intercept(
 	info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
-	a.logger.Debug("Intercepting request", tag.NewAnyTag("request", req), tag.NewAnyTag("method", info.FullMethod))
+	//a.logger.Debug("Intercepting request", tag.NewAnyTag("request", req), tag.NewAnyTag("method", info.FullMethod))
 	tlsConnection := TLSInfoFromContext(ctx)
-	a.logger.Debug("Extracted TLS info", tag.NewAnyTag("tlsConnection", tlsConnection))
+	//a.logger.Debug("Extracted TLS info", tag.NewAnyTag("tlsConnection", tlsConnection))
 	md, _ := metadata.FromIncomingContext(ctx)
 
 	authInfo := a.GetAuthInfo(tlsConnection, headers.GRPCHeaderGetter{Metadata: md}, func() string {
@@ -153,7 +153,7 @@ func (a *Interceptor) Intercept(
 		}
 		return ""
 	})
-	a.logger.Debug("Extracted Auth info", tag.NewAnyTag("authInfo", authInfo))
+	//a.logger.Debug("Extracted Auth info", tag.NewAnyTag("authInfo", authInfo))
 
 	var claims *Claims
 	if authInfo != nil {
@@ -191,7 +191,7 @@ func (a *Interceptor) Intercept(
 // Returns nil if either the policy's claimMapper or authorizer are nil or when there is no auth information in the
 // provided TLS info or headers.
 func (a *Interceptor) GetAuthInfo(tlsConnection *credentials.TLSInfo, header headers.HeaderGetter, audienceGetter func() string) *AuthInfo {
-	a.logger.Debug("Getting Auth info", tag.NewAnyTag("tlsConnection", tlsConnection), tag.NewAnyTag("header", header))
+    // a.logger.Debug("Getting Auth info", tag.NewAnyTag("tlsConnection", tlsConnection), tag.NewAnyTag("header", header))
 	if a.claimMapper == nil || a.authorizer == nil {
 		a.logger.Debug("ClaimMapper or Authorizer is nil")
 		return nil
@@ -227,13 +227,13 @@ func (a *Interceptor) GetAuthInfo(tlsConnection *credentials.TLSInfo, header hea
 		ExtraData:     authExtraHeader,
 		Audience:      audienceGetter(),
 	}
-	a.logger.Debug("Auth info created", tag.NewAnyTag("authInfo", authInfo))
+	// a.logger.Debug("Auth info created", tag.NewAnyTag("authInfo", authInfo))
 	return authInfo
 }
 
 // GetClaims uses the policy's claimMapper to map the provided authInfo to claims.
 func (a *Interceptor) GetClaims(authInfo *AuthInfo) (*Claims, error) {
-	a.logger.Debug("Getting claims from authInfo", tag.NewAnyTag("authInfo", authInfo))
+	//a.logger.Debug("Getting claims from authInfo")
 	claims, err := a.claimMapper.GetClaims(authInfo)
 	if err != nil {
 		a.logger.Error("Error getting claims", tag.Error(err))
@@ -245,7 +245,7 @@ func (a *Interceptor) GetClaims(authInfo *AuthInfo) (*Claims, error) {
 
 // EnhanceContext returns a new context with [MappedClaims] and [AuthHeader] values.
 func (a *Interceptor) EnhanceContext(ctx context.Context, authInfo *AuthInfo, claims *Claims) context.Context {
-	a.logger.Debug("Enhancing context with claims and authInfo", tag.NewAnyTag("claims", claims), tag.NewAnyTag("authInfo", authInfo))
+	//a.logger.Debug("Enhancing context with claims and authInfo", tag.NewAnyTag("claims", claims), tag.NewAnyTag("authInfo", authInfo))
 	ctx = context.WithValue(ctx, MappedClaims, claims)
 	if authInfo.AuthToken != "" {
 		ctx = context.WithValue(ctx, AuthHeader, authInfo.AuthToken)
